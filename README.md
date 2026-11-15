@@ -172,6 +172,8 @@ Returns the current CS2 ELO plus **today’s** wins and losses (FACEIT match day
 
 **Response:** `2150, W: 2, L: 1`
 
+**Ranked players (Challenger, top 1000 in their region):** the regional position is added after the ELO, e.g. `3250 (#523 SA), W: 2, L: 1`. Unranked players keep the format above.
+
 **Note:** Nicknames are case-insensitive (automatically converted to lowercase).
 
 **Examples:**
@@ -191,6 +193,8 @@ curl https://YOUR_SERVICE_URL/elo?player=faceit_player
 Returns player statistics. Averages, K/D, HS%, and win rate are derived from the **last 30 completed matches**. Query **`player` is required** (alias `nick` still accepted for older URLs). There is no default player for `/stats` — unlike `/elo` and `/streak`.
 
 **Response:** `nickname: | ELO: 2150 | Level: 10 | Avg Kills: 18.2 | K/D: 1.25 | HS%: 48% | Winrate: 55%`
+
+**Ranked players (Challenger, top 1000 in their region):** a `Rank: #523 SA` field is added right after `ELO`, e.g. `nickname: | ELO: 3250 | Rank: #523 SA | Level: 10 | ...`. Unranked players keep the format above.
 
 **Missing `player`:** `200` with body `Indique o nickname FACEIT (ex.: !stats s1mple)` (plain text for Twitch `urlfetch`). The same warning is returned when `player` is the literal string `null` or `undefined` (case-insensitive) — this happens on Nightbot when the user runs `!stats` without any argument and `$(1)` gets expanded to `null`.
 

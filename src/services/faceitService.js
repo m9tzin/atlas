@@ -309,6 +309,42 @@ export async function calculateLast30MatchesStats(playerId) {
 }
 
 /**
+ * Get the player's regional CS2 ranking position, only when ranked (Challenger)
+ * Never throws: any failure (timeout, 404 for unranked players) yields null
+ * @param {Object} playerData - Player data object
+ * @returns {Promise<{position: number, region: string}|null>}
+ */
+export async function getPlayerRegionRanking(playerData) {
+  const region = playerData?.games?.cs2?.region;
+  const playerId = playerData?.player_id;
+  if (!region || !playerId) return null;
+
+  try {
+    const data = await faceitRequest(
+      `/rankings/games/cs2/regions/${encodeURIComponent(region)}/players/${playerId}?limit=1`,
+      3000
+    );
+    const position = data?.position;
+    if (!Number.isInteger(position) || position < 1 || position > config.faceit.rankingThreshold) {
+      return null;
+    }
+    return { position, region };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Format a regional ranking for display
+ * @param {{position: number, region: string}|null} ranking
+ * @returns {string} e.g. "#523 SA", or empty string when not ranked
+ */
+export function formatRanking(ranking) {
+  if (!ranking) return '';
+  return `#${ranking.position} ${ranking.region}`;
+}
+
+/**
  * Check if player has CS2 data
  * @param {Object} playerData - Player data object
  * @returns {boolean} True if player has CS2 data
@@ -322,9 +358,10 @@ export function hasCS2Data(playerData) {
  * Follows Faceit Tracker format: ELO | Level | Avg Kills | K/D | HS% | Winrate
  * @param {Object} playerData - Player data
  * @param {Object} calculatedStats - Calculated statistics from last 30 matches
+ * @param {{position: number, region: string}|null} [ranking] - Regional ranking, shown when present
  * @returns {string} Formatted statistics string
  */
-export function formatStatsFromLast30(playerData, calculatedStats) {
+export function formatStatsFromLast30(playerData, calculatedStats, ranking = null) {
   const cs2 = playerData.games?.cs2;
   const elo = cs2?.faceit_elo ?? 0;
   const level = cs2?.skill_level ?? 0;
@@ -332,6 +369,7 @@ export function formatStatsFromLast30(playerData, calculatedStats) {
   return [
     `${playerData.nickname}:`,
     `ELO: ${elo}`,
+    ...(ranking ? [`Rank: ${formatRanking(ranking)}`] : []),
     `Level: ${level}`,
     `Avg Kills: ${calculatedStats.avgKills}`,
     `K/D: ${calculatedStats.kd}`,

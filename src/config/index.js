@@ -15,7 +15,8 @@ export const config = {
   faceit: {
     apiKey: process.env.FACEIT_KEY,
     baseUrl: 'https://open.faceit.com/data/v4',
-    defaultPlayer: (process.env.PLAYER_NICKNAME || 'faceit_player').toLowerCase().trim()
+    defaultPlayer: (process.env.PLAYER_NICKNAME || 'faceit_player').toLowerCase().trim(),
+    rankingThreshold: 1000 // regional position shown only up to this (Challenger = top 1000)
   },
   
   // Cache configuration
