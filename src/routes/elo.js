@@ -12,6 +12,8 @@ import {
   getPlayerData,
   hasCS2Data,
   calculateTodayStats,
+  getPlayerRegionRanking,
+  formatRanking,
 } from "../services/faceitService.js";
 
 const router = express.Router();
@@ -56,9 +58,13 @@ router.get(
 
     const elo = playerData.games.cs2.faceit_elo;
 
-    const todayStats = await calculateTodayStats(playerData.player_id);
+    const [todayStats, ranking] = await Promise.all([
+      calculateTodayStats(playerData.player_id),
+      getPlayerRegionRanking(playerData),
+    ]);
 
-    const response = `${elo}, W: ${todayStats.wins}, L: ${todayStats.losses}`;
+    const rankLabel = ranking ? ` (${formatRanking(ranking)})` : "";
+    const response = `${elo}${rankLabel}, W: ${todayStats.wins}, L: ${todayStats.losses}`;
 
     cache.set(cacheKey, response, config.cache.maxEntries);
 

@@ -13,6 +13,7 @@ import {
   hasCS2Data,
   calculateLast30MatchesStats,
   formatStatsFromLast30,
+  getPlayerRegionRanking,
 } from "../services/faceitService.js";
 
 const router = express.Router();
@@ -65,11 +66,12 @@ router.get(
         throw new NoCS2DataError();
       }
 
-      const calculatedStats = await calculateLast30MatchesStats(
-        playerData.player_id,
-      );
+      const [calculatedStats, ranking] = await Promise.all([
+        calculateLast30MatchesStats(playerData.player_id),
+        getPlayerRegionRanking(playerData),
+      ]);
 
-      return formatStatsFromLast30(playerData, calculatedStats);
+      return formatStatsFromLast30(playerData, calculatedStats, ranking);
     })();
 
     const timeout = new Promise((_, reject) =>
